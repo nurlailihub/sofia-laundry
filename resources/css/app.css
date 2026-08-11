@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap');
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-headline: 'Montserrat', system-ui, sans-serif;
+    --color-sofia-primary: #2BB1B1;
+    --color-sofia-secondary: #E0F2F1;
+    --color-sofia-tertiary: #005F73;
+    --color-sofia-neutral: #F8FAFC;
+    --color-sofia-dark: #2D3E3A;
+}
+
+:root {
+    --primary: #2BB1B1;
+    --secondary: #E0F2F1;
+    --tertiary: #005F73;
+    --neutral-bg: #F8FAFC;
+    --dark-bg: #2D3E3A;
+    --font-headline: 'Montserrat', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--neutral-bg);
+    color: #1E293B;
+}
+
+h1, h2, h3, h4, h5, h6, .font-headline {
+    font-family: var(--font-headline);
+}
+
