@@ -623,6 +623,13 @@
                         </a>
                     </li>
 
+                    <li class="nav-item">
+                        <a href="{{ route('admin.laporan.pendapatan.index') }}" class="nav-link {{ request()->routeIs('admin.laporan.pendapatan.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-money-bill-wave"></i>
+                            <p>Laporan Pendapatan</p>
+                        </a>
+                    </li>
+
                     @if(auth()->user()->role === 'admin')
                     <li class="nav-header">AKUN</li>
 
