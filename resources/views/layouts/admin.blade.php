@@ -572,6 +572,8 @@
                         </a>
                     </li>
 
+
+
                     <li class="nav-item">
                         <a href="{{ route('admin.transaksis.index') }}" class="nav-link {{ request()->routeIs('admin.transaksis.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-cash-register"></i>

@@ -398,10 +398,8 @@ function bindRowEvents(idx) {
         ?.addEventListener('input', hitungTotal);
 }
 
-// Bind baris pertama
 bindRowEvents(0);
 
-// ===== Hitung Total =====
 function hitungTotal() {
     let totalLayananHarga = 0;
 
@@ -424,8 +422,8 @@ function hitungTotal() {
     const biayaAJ = tipeEl ? parseFloat(tipeEl.dataset.biaya || 0) : 0;
     const total   = totalLayananHarga + biayaAJ;
 
-    document.getElementById('totalLayanan').textContent  = fmt(totalLayananHarga);
-    document.getElementById('totalEstimasi').textContent = fmt(total);
+    document.getElementById('totalLayanan').textContent   = fmt(totalLayananHarga);
+    document.getElementById('totalEstimasi').textContent  = fmt(total);
     document.getElementById('transferJumlah').textContent = fmt(total);
     document.getElementById('qrisJumlah').textContent     = 'Total: ' + fmt(total);
 
@@ -441,7 +439,6 @@ function hitungTotal() {
     document.getElementById('sisaBayar').value = fmt(Math.max(0, total - dpBayar));
 }
 
-// ===== Metode & Tipe =====
 function toggleMetode() {
     const v = document.querySelector('.metode-radio:checked')?.value || 'cash';
     document.getElementById('infoTransfer').classList.toggle('show', v === 'transfer');
@@ -460,9 +457,6 @@ document.querySelectorAll('.metode-radio').forEach(r => r.addEventListener('chan
 document.querySelectorAll('.tipe-radio').forEach(r => r.addEventListener('change', toggleTipe));
 document.getElementById('inputDpBayar').addEventListener('input', hitungTotal);
 
-toggleTipe();
-
-// ===== Upload Bukti =====
 document.getElementById('inputBukti').addEventListener('change', function () {
     const file = this.files[0];
     if (!file) return;
@@ -477,13 +471,10 @@ document.getElementById('inputBukti').addEventListener('change', function () {
     reader.readAsDataURL(file);
 });
 
-// ===== Form Submit Validation =====
 document.getElementById('formBooking').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const errors = [];
-
-    // Cek setiap baris layanan
     const rows = document.querySelectorAll('.layanan-row');
     rows.forEach((row, i) => {
         const select = row.querySelector('.layanan-select');
@@ -495,7 +486,6 @@ document.getElementById('formBooking').addEventListener('submit', function(e) {
         }
     });
 
-    // Cek tanggal booking
     const tgl = document.querySelector('[name="tanggal_booking"]');
     if (!tgl || !tgl.value) {
         errors.push('Tanggal booking wajib diisi.');
@@ -504,13 +494,9 @@ document.getElementById('formBooking').addEventListener('submit', function(e) {
         tgl && tgl.classList.remove('is-invalid');
     }
 
-    // Cek metode bayar
     const metode = document.querySelector('.metode-radio:checked');
-    if (!metode) {
-        errors.push('Pilih metode pembayaran.');
-    }
+    if (!metode) errors.push('Pilih metode pembayaran.');
 
-    // Cek alamat jika diperlukan
     const tipe = document.querySelector('.tipe-radio:checked')?.value || 'none';
     if (['pickup','both'].includes(tipe)) {
         const aj = document.querySelector('[name="alamat_jemput"]');
@@ -528,7 +514,6 @@ document.getElementById('formBooking').addEventListener('submit', function(e) {
     }
 
     if (errors.length > 0) {
-        // Tampilkan error di atas form
         let errBox = document.getElementById('jsErrorBox');
         if (!errBox) {
             errBox = document.createElement('div');
@@ -536,21 +521,17 @@ document.getElementById('formBooking').addEventListener('submit', function(e) {
             errBox.className = 'alert alert-danger rounded-3 mb-4';
             document.getElementById('formBooking').prepend(errBox);
         }
-        errBox.innerHTML = '<ul class="mb-0 ps-3">' +
-            errors.map(e => `<li>${e}</li>`).join('') +
-            '</ul>';
+        errBox.innerHTML = '<ul class="mb-0 ps-3">' + errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
         errBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
     }
 
-    // Semua valid — submit
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mengirim Booking...';
     this.submit();
 });
 
-// Init
 toggleTipe();
 toggleMetode();
 hitungTotal();

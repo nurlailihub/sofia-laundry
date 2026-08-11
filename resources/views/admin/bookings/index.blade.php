@@ -14,6 +14,11 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Daftar Kelola Booking</h3>
+                <div class="card-tools">
+                    <a href="{{ route('admin.tarif.index') }}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-truck mr-1"></i> Atur Tarif Antar/Jemput
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <table id="tableBooking" class="table table-bordered table-striped">
