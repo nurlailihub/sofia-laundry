@@ -95,6 +95,14 @@
                 @endif
                 @php $tipeLabel = ['none'=>'Sendiri','pickup'=>'Dijemput','delivery'=>'Diantar','both'=>'Jemput & Antar'] @endphp
                 <div class="info-sub">Antar/Jemput: {{ $tipeLabel[$booking->tipe_antar_jemput] ?? '-' }}</div>
+                @if($booking->tipe_antar_jemput !== 'none')
+                    @if($booking->alamat_jemput)
+                    <div class="info-sub">&#9679; Jemput: {{ $booking->alamat_jemput }}</div>
+                    @endif
+                    @if($booking->alamat_antar)
+                    <div class="info-sub">&#9679; Antar ke: {{ $booking->alamat_antar }}</div>
+                    @endif
+                @endif
             </div>
         </div>
 
@@ -123,7 +131,15 @@
                 </tr>
                 @if ($booking->biaya_antar_jemput > 0)
                 <tr>
-                    <td colspan="3">Biaya Antar/Jemput</td>
+                    <td colspan="3">
+                        Biaya Antar/Jemput
+                        @if($booking->alamat_jemput)
+                        <div style="font-size:8pt;color:#6b7280;margin-top:2px;">&#9679; Jemput: {{ $booking->alamat_jemput }}</div>
+                        @endif
+                        @if($booking->alamat_antar)
+                        <div style="font-size:8pt;color:#6b7280;margin-top:2px;">&#9679; Antar ke: {{ $booking->alamat_antar }}</div>
+                        @endif
+                    </td>
                     <td class="text-right">Rp {{ number_format($booking->biaya_antar_jemput, 0, ',', '.') }}</td>
                 </tr>
                 @endif

@@ -104,6 +104,20 @@
                     <span class="text-muted">Antar/Jemput:</span>
                     {{ $tipeLabel[$booking->tipe_antar_jemput] ?? '-' }}
                 </div>
+                @if($booking->tipe_antar_jemput !== 'none')
+                    @if($booking->alamat_jemput)
+                    <div style="font-size:.82rem;margin-top:.2rem;">
+                        <span class="text-muted"><i class="fas fa-map-marker-alt text-danger mr-1"></i>Jemput:</span>
+                        {{ $booking->alamat_jemput }}
+                    </div>
+                    @endif
+                    @if($booking->alamat_antar)
+                    <div style="font-size:.82rem;margin-top:.2rem;">
+                        <span class="text-muted"><i class="fas fa-map-marker-alt text-primary mr-1"></i>Antar:</span>
+                        {{ $booking->alamat_antar }}
+                    </div>
+                    @endif
+                @endif
             </div>
         </div>
 
