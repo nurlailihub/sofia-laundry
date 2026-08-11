@@ -45,7 +45,17 @@
 
     <div class="info">
         <p><strong>Filter Nama Pelanggan:</strong> {{ $nama_filter }}</p>
-        <p><strong>Periode:</strong> {{ $tanggal_mulai }} s/d {{ $tanggal_akhir }}</p>
+        <p><strong>Periode:</strong>
+            @if($tanggal_mulai && $tanggal_akhir)
+                {{ $tanggal_mulai }} &mdash; {{ $tanggal_akhir }}
+            @elseif($tanggal_mulai)
+                Mulai {{ $tanggal_mulai }}
+            @elseif($tanggal_akhir)
+                Sampai {{ $tanggal_akhir }}
+            @else
+                Semua periode
+            @endif
+        </p>
         <p><strong>Tanggal Cetak:</strong> {{ $tanggal_cetak }}</p>
     </div>
 

@@ -115,13 +115,19 @@ class LaporanWebController extends Controller
                 'status_selesai'   => $transaksis->where('status', 'selesai')->count(),
                 'status_diambil'   => $transaksis->where('status', 'diambil')->count(),
             ],
-            'tanggal_mulai'  => $request->tanggal_mulai ?? 'Semua',
-            'tanggal_akhir'  => $request->tanggal_akhir ?? 'Semua',
-            'status_filter'  => $request->status ?? 'Semua',
+            'tanggal_mulai'  => $request->filled('tanggal_mulai')
+                ? \Carbon\Carbon::parse($request->tanggal_mulai)->format('d/m/Y')
+                : null,
+            'tanggal_akhir'  => $request->filled('tanggal_akhir')
+                ? \Carbon\Carbon::parse($request->tanggal_akhir)->format('d/m/Y')
+                : null,
+            'status_filter'  => $request->status
+                ? ucfirst($request->status)
+                : 'Semua',
             'nama_filter'    => $request->id_pelanggan
                 ? (Pelanggan::find($request->id_pelanggan)->nama_pelanggan ?? 'Semua')
                 : 'Semua',
-            'tanggal_cetak'  => now()->format('d-m-Y H:i:s'),
+            'tanggal_cetak'  => now()->format('d/m/Y H:i:s'),
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.laporan.pdf.transaksi', $data);
@@ -256,10 +262,14 @@ class LaporanWebController extends Controller
                 'total_transaksi_keseluruhan'  => $pelanggans->sum('total_transaksi'),
                 'total_pendapatan_keseluruhan' => (float) $pelanggans->sum('total_pendapatan'),
             ],
-            'nama_filter'   => $request->nama_pelanggan ?? 'Semua',
-            'tanggal_mulai' => $request->tanggal_mulai ?? 'Semua',
-            'tanggal_akhir' => $request->tanggal_akhir ?? 'Semua',
-            'tanggal_cetak' => now()->format('d-m-Y H:i:s'),
+            'nama_filter'   => $request->nama_pelanggan ?: 'Semua',
+            'tanggal_mulai' => $request->filled('tanggal_mulai')
+                ? \Carbon\Carbon::parse($request->tanggal_mulai)->format('d/m/Y')
+                : null,
+            'tanggal_akhir' => $request->filled('tanggal_akhir')
+                ? \Carbon\Carbon::parse($request->tanggal_akhir)->format('d/m/Y')
+                : null,
+            'tanggal_cetak' => now()->format('d/m/Y H:i:s'),
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.laporan.pdf.pelanggan', $data);
@@ -342,8 +352,8 @@ class LaporanWebController extends Controller
                 'total_pendapatan' => (float) $transaksis->sum('total_harga'),
                 'total_berat'      => (float) $transaksis->sum('total_berat'),
             ],
-            'tahun_filter'   => $request->tahun ?? 'Semua',
-            'tanggal_cetak'  => now()->format('d-m-Y H:i:s'),
+            'tahun_filter'   => $request->tahun ?? 'Semua Tahun',
+            'tanggal_cetak'  => now()->format('d/m/Y H:i:s'),
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.laporan.pdf.pertahun', $data);
