@@ -13,13 +13,9 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-title mb-0">Filter Laporan Transaksi</h3>
-        <a href="{{ route('admin.laporan.transaksi.cetak', request()->query()) }}" target="_blank"
-           class="btn btn-success btn-sm">
-            <i class="fas fa-file-pdf mr-1"></i>Cetak PDF
-        </a>
     </div>
     <div class="card-body">
-        <form method="GET" action="{{ route('admin.laporan.transaksi.index') }}">
+        <form method="GET" action="{{ route('admin.laporan.transaksi.index') }}" id="formFilterTransaksi">
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
@@ -67,6 +63,9 @@
             <a href="{{ route('admin.laporan.transaksi.index') }}" class="btn btn-secondary btn-sm">
                 <i class="fas fa-redo mr-1"></i>Reset
             </a>
+            <button type="button" class="btn btn-success btn-sm ml-2" onclick="cetakPDF()">
+                <i class="fas fa-file-pdf mr-1"></i>Cetak PDF
+            </button>
         </form>
     </div>
 </div>
@@ -154,6 +153,12 @@
 
 @push('scripts')
 <script>
+function cetakPDF() {
+    const form   = document.getElementById('formFilterTransaksi');
+    const params = new URLSearchParams(new FormData(form));
+    window.open('{{ route('admin.laporan.transaksi.cetak') }}?' + params.toString(), '_blank');
+}
+
 $(document).ready(function () {
     $('#tableLaporan').DataTable({
         language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' },
