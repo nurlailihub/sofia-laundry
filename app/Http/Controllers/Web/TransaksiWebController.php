@@ -63,6 +63,8 @@ class TransaksiWebController extends Controller
             'total_harga'              => 'required|numeric|min:0',
             'tipe_antar_jemput'        => 'nullable|in:none,pickup,delivery,both',
             'biaya_antar_jemput'       => 'nullable|numeric|min:0',
+            'alamat_jemput'            => 'required_if:tipe_antar_jemput,pickup,both|nullable|string|max:500',
+            'alamat_antar'             => 'required_if:tipe_antar_jemput,delivery,both|nullable|string|max:500',
             'status'                   => 'required|in:proses,selesai,diambil',
             'details'                  => 'required|array',
             'details.*.id_layanan'     => 'required|exists:layanans,id_layanan',

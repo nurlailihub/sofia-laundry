@@ -282,6 +282,104 @@ class LaporanWebController extends Controller
         return view('admin.laporan.pertahun');
     }
 
+    public function pendapatanIndex()
+    {
+        return view('admin.laporan.pendapatan');
+    }
+
+    public function pendapatanData(Request $request)
+    {
+        try {
+            $query = Transaksi::with(['pelanggan', 'pembayaran']);
+
+            if ($request->filled('tanggal_mulai')) {
+                $query->whereDate('tanggal_masuk', '>=', $request->tanggal_mulai);
+            }
+            if ($request->filled('tanggal_akhir')) {
+                $query->whereDate('tanggal_masuk', '<=', $request->tanggal_akhir);
+            }
+            if ($request->filled('status_bayar')) {
+                $query->whereHas('pembayaran', fn($q) => $q->where('status_bayar', $request->status_bayar));
+            }
+
+            $transaksis = $query->orderBy('tanggal_masuk', 'desc')->get();
+
+            $rows = $transaksis->map(fn($t) => [
+                'id_transaksi'  => $t->id_transaksi,
+                'tanggal'       => \Carbon\Carbon::parse($t->tanggal_masuk)->format('d/m/Y'),
+                'pelanggan'     => $t->pelanggan->nama_pelanggan ?? '-',
+                'total_tagihan' => (float) $t->total_tagihan,
+                'jumlah_bayar'  => (float) ($t->pembayaran->jumlah_bayar ?? 0),
+                'status_bayar'  => $t->pembayaran->status_bayar ?? 'belum',
+                'metode_bayar'  => $t->pembayaran->metode_bayar ?? '-',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'rows'      => $rows,
+                    'statistik' => [
+                        'total_transaksi' => $transaksis->count(),
+                        'total_tagihan'   => (float) $rows->sum('total_tagihan'),
+                        'total_terbayar'  => (float) $rows->sum('jumlah_bayar'),
+                        'jumlah_lunas'    => $rows->where('status_bayar', 'lunas')->count(),
+                        'jumlah_belum'    => $rows->where('status_bayar', 'belum')->count(),
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function pendapatanCetak(Request $request)
+    {
+        $query = Transaksi::with(['pelanggan', 'pembayaran']);
+
+        if ($request->filled('tanggal_mulai')) {
+            $query->whereDate('tanggal_masuk', '>=', $request->tanggal_mulai);
+        }
+        if ($request->filled('tanggal_akhir')) {
+            $query->whereDate('tanggal_masuk', '<=', $request->tanggal_akhir);
+        }
+        if ($request->filled('status_bayar')) {
+            $query->whereHas('pembayaran', fn($q) => $q->where('status_bayar', $request->status_bayar));
+        }
+
+        $transaksis = $query->orderBy('tanggal_masuk', 'desc')->get();
+
+        $rows = $transaksis->map(fn($t) => [
+            'id_transaksi'  => $t->id_transaksi,
+            'tanggal'       => \Carbon\Carbon::parse($t->tanggal_masuk)->format('d/m/Y'),
+            'pelanggan'     => $t->pelanggan->nama_pelanggan ?? '-',
+            'total_tagihan' => (float) $t->total_tagihan,
+            'jumlah_bayar'  => (float) ($t->pembayaran->jumlah_bayar ?? 0),
+            'status_bayar'  => $t->pembayaran->status_bayar ?? 'belum',
+            'metode_bayar'  => $t->pembayaran->metode_bayar ?? '-',
+        ]);
+
+        $data = [
+            'rows'          => $rows,
+            'statistik'     => [
+                'total_transaksi' => $transaksis->count(),
+                'total_tagihan'   => (float) $rows->sum('total_tagihan'),
+                'total_terbayar'  => (float) $rows->sum('jumlah_bayar'),
+                'jumlah_lunas'    => $rows->where('status_bayar', 'lunas')->count(),
+                'jumlah_belum'    => $rows->where('status_bayar', 'belum')->count(),
+            ],
+            'tanggal_mulai' => $request->filled('tanggal_mulai')
+                ? \Carbon\Carbon::parse($request->tanggal_mulai)->format('d/m/Y') : null,
+            'tanggal_akhir' => $request->filled('tanggal_akhir')
+                ? \Carbon\Carbon::parse($request->tanggal_akhir)->format('d/m/Y') : null,
+            'status_filter' => $request->status_bayar ? ucfirst($request->status_bayar) : 'Semua',
+            'tanggal_cetak' => now()->format('d/m/Y H:i:s'),
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.laporan.pdf.pendapatan', $data);
+        $pdf->setPaper('a4', 'landscape');
+        return $pdf->download('laporan-pendapatan-' . date('Y-m-d') . '.pdf');
+    }
+
     public function pertahunData(Request $request)
     {
         try {

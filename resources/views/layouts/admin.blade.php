@@ -723,11 +723,16 @@
     <!-- /.content-wrapper -->
 
     <!-- Footer -->
-    <footer class="main-footer">
-        <strong>Copyright &copy; {{ date('Y') }} <a href="#">Laundry Management System</a>.</strong>
-        All rights reserved.
-        <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 1.0.0
+    <footer class="main-footer" style="background: linear-gradient(135deg, #005F73 0%, #004B5B 100%); color: #fff; border-top: none; padding: .75rem 1.5rem;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-tshirt mr-2" style="opacity:.7;"></i>
+                <strong>Sofia Laundry</strong>
+                <span style="opacity:.6; font-size:.82rem; margin-left:.5rem;">&copy; {{ date('Y') }} — Laundry Management System</span>
+            </div>
+            <div style="font-size:.8rem; opacity:.7;">
+                Version 1.0.0
+            </div>
         </div>
     </footer>
 </div>

@@ -214,5 +214,9 @@ Route::middleware(['auth', 'role:admin,pimpinan'])->prefix('admin')->name('admin
         Route::get('/pertahun', [LaporanWebController::class, 'pertahunIndex'])->name('pertahun.index');
         Route::get('/pertahun/data', [LaporanWebController::class, 'pertahunData'])->name('pertahun.data');
         Route::get('/pertahun/cetak', [LaporanWebController::class, 'pertahunCetak'])->name('pertahun.cetak');
+
+        Route::get('/pendapatan', [LaporanWebController::class, 'pendapatanIndex'])->name('pendapatan.index');
+        Route::get('/pendapatan/data', [LaporanWebController::class, 'pendapatanData'])->name('pendapatan.data');
+        Route::get('/pendapatan/cetak', [LaporanWebController::class, 'pendapatanCetak'])->name('pendapatan.cetak');
     });
 });
