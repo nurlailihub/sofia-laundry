@@ -43,6 +43,12 @@
         .note-box { margin-top: 12px; padding: 10px 12px; background: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; font-size: 8.5pt; color: #92400e; }
 
         .footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 8pt; color: #9ca3af; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff !important; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            @page { size: A5 portrait; margin: 8mm; }
+        }
     </style>
 </head>
 <body>
@@ -51,6 +57,22 @@
     @if ($booking->status === 'confirmed')
     <div class="watermark">BOOKING</div>
     @endif
+
+    {{-- ── Toolbar Preview (hilang saat cetak) ── --}}
+    <div style="position:sticky;top:0;z-index:100;background:#1f2937;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;" class="no-print">
+        <div>
+            <div style="font-size:14px;font-weight:600;">Preview Faktur Booking</div>
+            <div style="font-size:11px;color:#9ca3af;margin-top:2px;">Periksa faktur sebelum mencetak</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <button onclick="window.history.back()" style="background:#6b7280;color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:13px;">
+                &#8592; Kembali
+            </button>
+            <button onclick="window.print()" style="background:#10b981;color:#fff;border:none;padding:9px 22px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">
+                🖨️ &nbsp;Cetak Faktur
+            </button>
+        </div>
+    </div>
 
     <div class="header">
         <div class="header-top">

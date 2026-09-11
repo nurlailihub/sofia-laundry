@@ -208,6 +208,11 @@ class TransaksiWebController extends Controller
         return view('admin.transaksis.faktur', compact('transaksi'));
     }
 
+    /**
+     * Tampilkan halaman PREVIEW faktur yang sudah siap cetak.
+     * User bisa melihat hasilnya terlebih dahulu sebelum klik tombol cetak.
+     * Tombol "Cetak" di dalam halaman akan memanggil window.print() browser.
+     */
     public function cetakFaktur($id)
     {
         $transaksi = Transaksi::with([
@@ -219,13 +224,7 @@ class TransaksiWebController extends Controller
             'user',
         ])->findOrFail($id);
 
-        $view = view('admin.transaksis.faktur-print', compact('transaksi'))->render();
-
-        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($view)->setPaper('a5', 'portrait');
-            return $pdf->download('faktur-transaksi-' . str_pad($transaksi->id_transaksi, 6, '0', STR_PAD_LEFT) . '.pdf');
-        }
-
+        // Selalu tampilkan preview di browser — user klik tombol Cetak sendiri
         return view('admin.transaksis.faktur-print', compact('transaksi'));
     }
 }

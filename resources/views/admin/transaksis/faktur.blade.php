@@ -40,7 +40,7 @@ table.detail-table td, table.detail-table th { padding: .5rem .75rem; }
         <div>
             <a href="{{ route('admin.transaksis.cetak', $transaksi->id_transaksi) }}"
                class="btn btn-primary btn-sm" target="_blank">
-                <i class="fas fa-print mr-1"></i> Cetak / Download PDF
+                <i class="fas fa-print mr-1"></i> Preview &amp; Cetak
             </a>
         </div>
     </div>

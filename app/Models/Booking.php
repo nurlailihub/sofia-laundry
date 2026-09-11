@@ -39,11 +39,13 @@ class Booking extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Booking $booking) {
+        // Generate kode_reservasi AFTER insert so we use the real id_booking
+        // that was just assigned by the DB, avoiding race conditions entirely.
+        static::created(function (Booking $booking) {
             if (!$booking->kode_reservasi) {
-                $last = static::orderBy('id_booking', 'desc')->first();
-                $next = $last ? $last->id_booking + 1 : 1;
-                $booking->kode_reservasi = 'RSV-' . str_pad($next, 4, '0', STR_PAD_LEFT);
+                $booking->updateQuietly([
+                    'kode_reservasi' => 'RSV-' . str_pad($booking->id_booking, 4, '0', STR_PAD_LEFT),
+                ]);
             }
         });
     }

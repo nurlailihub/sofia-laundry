@@ -286,11 +286,11 @@
 <div class="d-flex justify-content-center gap-3 mt-4 mb-4">
     <a href="{{ route('admin.bookings.cetak', $booking->id_booking) }}" target="_blank"
         class="btn btn-primary px-4">
-        <i class="fas fa-print mr-2"></i>Cetak / Download PDF
+        <i class="fas fa-print mr-2"></i>Preview &amp; Cetak
     </a>
     @if ($booking->status === 'pending')
-    <a href="{{ route('admin.bookings.edit', $booking->id_booking) }}" class="btn btn-info px-4">
-        <i class="fas fa-edit mr-2"></i>Edit Booking
+    <a href="{{ route('admin.bookings.confirm.form', $booking->id_booking) }}" class="btn btn-info px-4">
+        <i class="fas fa-check-circle mr-2"></i>Konfirmasi Booking
     </a>
     @endif
     <a href="{{ route('admin.bookings.index') }}" class="btn btn-outline-secondary px-4">
