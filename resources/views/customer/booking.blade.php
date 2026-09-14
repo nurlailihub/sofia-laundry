@@ -275,13 +275,9 @@
                         <div id="infoQris" class="info-box {{ $metode === 'qris' ? 'show' : '' }}" style="background:#fffbeb;border:1px solid #fde68a;">
                             <div class="fw-bold mb-2 text-warning"><i class="fas fa-qrcode me-2"></i>Scan QRIS untuk Pembayaran</div>
                             <div class="text-center py-2">
-                                <div style="width:160px;height:160px;background:#f3f4f6;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;border:2px solid #e5e7eb;">
-                                    <div class="text-center text-muted">
-                                        <i class="fas fa-qrcode" style="font-size:3rem;opacity:.3;"></i>
-                                        <div class="small mt-1" style="font-size:.7rem;">QR Code<br>Sofia Laundry</div>
-                                    </div>
-                                </div>
-                                <div class="mt-2 small text-muted">Simpan gambar QRIS ini & scan menggunakan aplikasi dompet digital</div>
+                                <img src="{{ asset('images/qris.jpeg') }}" alt="QRIS Sofia Laundry"
+                                    style="max-width:260px;width:100%;border-radius:12px;border:2px solid #e5e7eb;">
+                                <div class="mt-2 small text-muted">Scan menggunakan aplikasi e-wallet atau mobile banking yang mendukung QRIS</div>
                                 <div class="mt-1 fw-bold text-warning" id="qrisJumlah" style="font-size:.9rem;">Total: Rp 0</div>
                             </div>
                             <div class="mt-2 p-2 rounded-2 text-warning small" style="background:#fef3c7;">

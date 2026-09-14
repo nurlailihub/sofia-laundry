@@ -191,7 +191,7 @@
                     {{-- QRIS Image --}}
                     <div class="form-group text-center" id="wrapQrisImage" style="{{ old('metode_bayar') === 'qris' ? '' : 'display:none;' }}">
                         <label class="font-weight-bold d-block mb-2">Scan QR Code Berikut</label>
-                        <img src="{{ asset('images/qris.png') }}" alt="QRIS" class="img-fluid border rounded shadow-sm"
+                        <img src="{{ asset('images/qris.jpeg') }}" alt="QRIS" class="img-fluid border rounded shadow-sm"
                             style="max-width: 320px;">
                         <div class="text-muted mt-2" style="font-size:0.85rem;">
                             <i class="fas fa-info-circle mr-1"></i>
