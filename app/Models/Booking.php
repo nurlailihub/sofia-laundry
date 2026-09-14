@@ -39,14 +39,18 @@ class Booking extends Model
 
     protected static function booted(): void
     {
-        // Generate kode_reservasi AFTER insert so we use the real id_booking
-        // that was just assigned by the DB, avoiding race conditions entirely.
-        static::created(function (Booking $booking) {
+        // Generate temporary kode_reservasi BEFORE insert to satisfy NOT NULL constraint,
+        // then update to the real one using id_booking after insert.
+        static::creating(function (Booking $booking) {
             if (!$booking->kode_reservasi) {
-                $booking->updateQuietly([
-                    'kode_reservasi' => 'RSV-' . str_pad($booking->id_booking, 4, '0', STR_PAD_LEFT),
-                ]);
+                $booking->kode_reservasi = 'RSV-' . strtoupper(\Illuminate\Support\Str::random(6));
             }
+        });
+
+        static::created(function (Booking $booking) {
+            $booking->updateQuietly([
+                'kode_reservasi' => 'RSV-' . str_pad($booking->id_booking, 4, '0', STR_PAD_LEFT),
+            ]);
         });
     }
 
