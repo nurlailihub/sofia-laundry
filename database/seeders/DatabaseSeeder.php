@@ -15,20 +15,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Admin User
-        User::create([
-            'nama_user' => 'Administrator',
-            'username' => 'admin',
-            'password' => bcrypt('admin123'), // Password: admin123
-            'role' => 'admin',
-        ]);
+        // Create or update Admin User
+        User::updateOrCreate(
+            ['username' => 'admin'],
+            [
+                'nama_user' => 'Administrator',
+                'password'  => bcrypt('admin123'),
+                'role'      => 'admin',
+            ]
+        );
 
-        // Create Pimpinan User
-        User::create([
-            'nama_user' => 'Pimpinan Laundry',
-            'username' => 'pimpinan',
-            'password' => bcrypt('pimpinan123'), // Password: pimpinan123
-            'role' => 'pimpinan',
-        ]);
+        // Create or update Pimpinan User
+        User::updateOrCreate(
+            ['username' => 'pimpinan'],
+            [
+                'nama_user' => 'Pimpinan Laundry',
+                'password'  => bcrypt('pimpinan123'),
+                'role'      => 'pimpinan',
+            ]
+        );
     }
 }

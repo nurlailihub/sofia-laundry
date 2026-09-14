@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\MonitoringController;
 use App\Http\Controllers\Web\PembayaranWebController;
 use App\Http\Controllers\Web\PelangganWebController;
 use App\Http\Controllers\Web\PengembalianWebController;
+use App\Http\Controllers\Web\PimpinanDashboardController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\StokBarangWebController;
 use App\Http\Controllers\Web\TarifAntarJemputController;
@@ -57,6 +58,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('pelanggan')->name('custome
     Route::get('/transaksi/{id}', [CustomerDashboardController::class, 'detailTransaksi'])->name('transaksi.detail');
     Route::get('/transaksi/{id}/faktur', [CustomerDashboardController::class, 'fakturPembayaran'])->name('transaksi.faktur');
     Route::get('/transaksi/{id}/faktur/cetak', [CustomerDashboardController::class, 'cetakFaktur'])->name('transaksi.faktur.cetak');
+});
+
+Route::middleware(['auth', 'role:pimpinan'])->prefix('pimpinan')->name('pimpinan.')->group(function () {
+    Route::get('/dashboard', [PimpinanDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profil', [ProfileController::class, 'index'])->name('profile');
+    Route::post('/profil/update', [ProfileController::class, 'updateProfile'])->name('profile.update');
 });
 
 Route::middleware(['auth', 'role:admin,pimpinan'])->prefix('admin')->name('admin.')->group(function () {
