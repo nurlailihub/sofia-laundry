@@ -179,13 +179,7 @@ class BookingWebController extends Controller
         $booking = Booking::with(['pelanggan', 'layanan', 'transaksi.pembayaran', 'transaksi.detailTransaksi.layanan'])
             ->findOrFail($id);
 
-        $view = view('admin.bookings.faktur-print', compact('booking'))->render();
-
-        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($view)->setPaper('a5', 'portrait');
-            return $pdf->download('faktur-booking-' . str_pad($booking->id_booking, 6, '0', STR_PAD_LEFT) . '.pdf');
-        }
-
+        // Tampilkan preview di browser — user klik tombol Cetak sendiri
         return view('admin.bookings.faktur-print', compact('booking'));
     }
 
