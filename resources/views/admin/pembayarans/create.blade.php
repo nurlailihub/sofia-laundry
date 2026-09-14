@@ -188,6 +188,17 @@
                         </div>
                     </div>
 
+                    {{-- QRIS Image --}}
+                    <div class="form-group text-center" id="wrapQrisImage" style="{{ old('metode_bayar') === 'qris' ? '' : 'display:none;' }}">
+                        <label class="font-weight-bold d-block mb-2">Scan QR Code Berikut</label>
+                        <img src="{{ asset('images/qris.png') }}" alt="QRIS" class="img-fluid border rounded shadow-sm"
+                            style="max-width: 320px;">
+                        <div class="text-muted mt-2" style="font-size:0.85rem;">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Scan menggunakan aplikasi e-wallet atau mobile banking yang mendukung QRIS.
+                        </div>
+                    </div>
+
                     <div class="form-group" id="wrapNomorRef" style="{{ old('metode_bayar','cash') !== 'cash' ? '' : 'display:none;' }}">
                         <label class="font-weight-bold">Nomor Referensi / Bukti Transfer</label>
                         <input type="text" name="nomor_referensi" class="form-control"
@@ -229,13 +240,18 @@
 <script>
 const tagihan = {{ $sisaTagihan }};
 
+function toggleMetodeUI(metode) {
+    document.getElementById('wrapNomorRef').style.display   = metode !== 'cash' ? 'block' : 'none';
+    document.getElementById('wrapQrisImage').style.display  = metode === 'qris'  ? 'block' : 'none';
+}
+
 document.querySelectorAll('.metode-card').forEach(card => {
     card.addEventListener('click', function () {
         document.querySelectorAll('.metode-card').forEach(c => c.classList.remove('selected'));
         this.classList.add('selected');
         const metode = this.dataset.metode;
         document.getElementById('m_' + metode).checked = true;
-        document.getElementById('wrapNomorRef').style.display = metode !== 'cash' ? 'block' : 'none';
+        toggleMetodeUI(metode);
     });
 });
 
@@ -244,6 +260,10 @@ document.querySelectorAll('.metode-card').forEach(card => {
         card.classList.add('selected');
     }
 });
+
+// Init saat load halaman (untuk old input)
+const checkedMetode = document.querySelector('input[name="metode_bayar"]:checked')?.value || 'cash';
+toggleMetodeUI(checkedMetode);
 
 document.getElementById('jumlahBayar').addEventListener('input', function () {
     const bayar     = parseFloat(this.value) || 0;
