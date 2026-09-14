@@ -222,7 +222,7 @@ class TransaksiWebController extends Controller
         $view = view('admin.transaksis.faktur-print', compact('transaksi'))->render();
 
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($view)->setPaper('a5', 'portrait');
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($view)->setPaper('a4', 'portrait');
             return $pdf->download('faktur-transaksi-' . str_pad($transaksi->id_transaksi, 6, '0', STR_PAD_LEFT) . '.pdf');
         }
 
