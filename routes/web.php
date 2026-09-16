@@ -14,11 +14,17 @@ use App\Http\Controllers\Web\PengembalianWebController;
 use App\Http\Controllers\Web\PimpinanDashboardController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\StokBarangWebController;
+use App\Http\Controllers\Web\StrukPublicController;
 use App\Http\Controllers\Web\TarifAntarJemputController;
 use App\Http\Controllers\Web\TransaksiWebController;
 use App\Http\Controllers\Web\UserWebController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+// ── Route publik struk pembayaran (signed URL, tanpa login) ──────────────────
+Route::get('/struk/{id}', [StrukPublicController::class, 'show'])
+    ->name('struk.public')
+    ->middleware('signed');
 
 Route::get('/', function () {
     if (!Auth::check()) {
@@ -183,6 +189,8 @@ Route::middleware(['auth', 'role:admin,pimpinan'])->prefix('admin')->name('admin
     Route::get('/pembayarans/faktur/{id}', [PembayaranWebController::class, 'faktur'])->name('pembayarans.faktur')
         ->middleware('role:admin');
     Route::get('/pembayarans/faktur/{id}/cetak', [PembayaranWebController::class, 'cetakFaktur'])->name('pembayarans.cetak')
+        ->middleware('role:admin');
+    Route::post('/pembayarans/{id}/kirim-wa', [PembayaranWebController::class, 'kirimStrukWA'])->name('pembayarans.kirim-wa')
         ->middleware('role:admin');
     Route::delete('/pembayarans/{id}', [PembayaranWebController::class, 'destroy'])->name('pembayarans.destroy')
         ->middleware('role:admin');

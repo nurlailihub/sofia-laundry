@@ -17,6 +17,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Store / Toko Information
+    |--------------------------------------------------------------------------
+    | Informasi toko yang tampil di struk WA, faktur, dan header.
+    */
+
+    'store_name'    => env('STORE_NAME', 'Sofia Laundry'),
+    'store_address' => env('STORE_ADDRESS', 'Jl. Malalo No. 32, Kota Tanah Datar'),
+    'store_phone'   => env('STORE_PHONE', '0812-3456-7890'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

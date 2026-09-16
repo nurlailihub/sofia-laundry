@@ -76,12 +76,66 @@
 </div>
 @endif
 
+@if (session('wa_success'))
+<div class="alert alert-info alert-dismissible fade show mb-3">
+    <i class="fab fa-whatsapp mr-2" style="color:#25d366;"></i>{{ session('wa_success') }}
+    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+</div>
+@endif
+
+@if (session('wa_error'))
+<div class="alert alert-warning alert-dismissible fade show mb-3">
+    <i class="fas fa-exclamation-triangle mr-2"></i>{{ session('wa_error') }}
+    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+</div>
+@endif
+
+{{-- Peringatan jika WA_PUBLIC_URL masih lokal --}}
+@php
+    $waPublicUrl = env('WA_PUBLIC_URL', config('app.url'));
+    $isLocalUrl  = str_contains($waPublicUrl, '127.0.0.1')
+                || str_contains($waPublicUrl, 'localhost')
+                || str_ends_with($waPublicUrl, '.test')
+                || str_ends_with($waPublicUrl, '.local');
+@endphp
+@if($isLocalUrl)
+<div class="alert alert-warning mb-3" style="max-width:620px;margin-left:auto;margin-right:auto;">
+    <i class="fas fa-exclamation-triangle mr-2"></i>
+    <strong>Link struk belum bisa diakses dari HP pelanggan!</strong><br>
+    <small>
+        URL saat ini (<code>{{ $waPublicUrl }}</code>) hanya bisa dibuka dari komputer lokal.
+        Agar link bisa diklik pelanggan via WA, update <code>WA_PUBLIC_URL</code> di <code>.env</code>
+        dengan domain publik atau ngrok tunnel.<br><br>
+        <strong>Cara cepat pakai ngrok:</strong><br>
+        1. Download ngrok di <a href="https://ngrok.com/download" target="_blank">ngrok.com/download</a><br>
+        2. Jalankan: <code>ngrok http 80</code> (atau port Laravel kamu)<br>
+        3. Copy URL ngrok (contoh: <code>https://abc123.ngrok-free.app</code>)<br>
+        4. Update <code>WA_PUBLIC_URL=https://abc123.ngrok-free.app</code> di <code>.env</code><br>
+        5. Jalankan <code>php artisan config:clear</code>
+    </small>
+</div>
+@endif
+
 {{-- Tombol aksi di atas --}}
-<div class="d-flex justify-content-center mb-4" style="gap:.75rem;flex-wrap:wrap;">
+<div class="d-flex justify-content-center mb-3" style="gap:.75rem;flex-wrap:wrap;">
     <a href="{{ route('admin.pembayarans.cetak', $pembayaran->id_pembayaran) }}" target="_blank"
        class="btn btn-dark px-4">
         <i class="fas fa-print mr-2"></i>Cetak Struk
     </a>
+
+    {{-- Tombol kirim WA --}}
+    @if($pembayaran->transaksi->pelanggan->no_hp ?? false)
+    <form action="{{ route('admin.pembayarans.kirim-wa', $pembayaran->id_pembayaran) }}" method="POST" class="d-inline">
+        @csrf
+        <button type="submit" class="btn btn-success px-4"
+                onclick="return confirm('Kirim struk ke WhatsApp {{ $pembayaran->transaksi->pelanggan->no_hp ?? '' }}?')"
+                @if($isLocalUrl) title="Peringatan: link tidak bisa dibuka dari HP pelanggan (URL lokal)" @endif>
+            <i class="fab fa-whatsapp mr-2"></i>Kirim ke WA
+            @if($isLocalUrl)<i class="fas fa-exclamation-circle ml-1 text-warning"></i>@endif
+        </button>
+    </form>
+    @endif
+
     @if ($pembayaran->status_bayar !== 'lunas')
     <a href="{{ route('admin.pembayarans.create', $pembayaran->transaksi->id_transaksi) }}"
        class="btn btn-warning px-4">
@@ -91,6 +145,27 @@
     <a href="{{ route('admin.transaksis.index') }}" class="btn btn-outline-secondary px-4">
         <i class="fas fa-arrow-left mr-2"></i>Kembali
     </a>
+</div>
+
+{{-- Info link struk digital --}}
+<div class="mb-4 p-3 rounded d-flex align-items-center justify-content-between"
+     style="max-width:620px;margin:0 auto;background:#f0fdf4;border:1px solid #6ee7b7;gap:12px;">
+    <div style="flex:1;min-width:0;">
+        <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#059669;margin-bottom:3px;">
+            🔗 Link Struk Digital (untuk dibagikan ke pelanggan)
+        </div>
+        <input type="text" id="linkStrukInput" value="{{ $linkStruk }}" readonly
+               class="form-control form-control-sm"
+               style="font-size:.78rem;font-family:monospace;background:#fff;color:#374151;border-color:#a7f3d0;">
+    </div>
+    <div style="flex-shrink:0;">
+        <button onclick="copyLink()" class="btn btn-sm btn-outline-success" id="btnCopy" title="Salin link">
+            <i class="fas fa-copy"></i>
+        </button>
+        <a href="{{ $linkStruk }}" target="_blank" class="btn btn-sm btn-outline-info ml-1" title="Buka struk">
+            <i class="fas fa-external-link-alt"></i>
+        </a>
+    </div>
 </div>
 
 {{-- Preview Struk --}}
@@ -241,5 +316,30 @@
     <div class="s-footer">Simpan struk sebagai bukti pembayaran</div>
 
 </div>
+
+@push('scripts')
+<script>
+function copyLink() {
+    var input = document.getElementById('linkStrukInput');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    try {
+        document.execCommand('copy');
+        var btn = document.getElementById('btnCopy');
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.classList.remove('btn-outline-success');
+        btn.classList.add('btn-success');
+        setTimeout(function() {
+            btn.innerHTML = '<i class="fas fa-copy"></i>';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-success');
+        }, 2000);
+    } catch (e) {
+        // fallback: clipboard API
+        navigator.clipboard.writeText(input.value);
+    }
+}
+</script>
+@endpush
 
 @endsection

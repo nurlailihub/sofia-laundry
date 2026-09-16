@@ -108,6 +108,206 @@ class WhatsAppService
     // =========================================================================
 
     /**
+     * Kirim struk pembayaran ke pelanggan via WhatsApp.
+     *
+     * Strategi pengiriman:
+     * 1. Kirim pesan teks dengan ringkasan pembayaran + link struk digital
+     * 2. Kirim PDF struk sebagai file attachment (jika Fonnte support file URL)
+     *
+     * @param  \App\Models\Pembayaran  $pembayaran
+     * @param  string                  $linkStruk   Signed URL ke halaman struk publik
+     */
+    public function sendStrukPembayaran($pembayaran, string $linkStruk): array
+    {
+        $transaksi = $pembayaran->transaksi;
+        $pelanggan = $transaksi->pelanggan;
+
+        if (!$pelanggan || !$pelanggan->no_hp) {
+            return ['success' => false, 'message' => 'Nomor HP pelanggan tidak ditemukan'];
+        }
+
+        $noHp = $this->formatPhone($pelanggan->no_hp);
+        if (!$noHp) {
+            return ['success' => false, 'message' => 'Format nomor HP pelanggan tidak valid'];
+        }
+
+        if (empty($this->token)) {
+            return ['success' => false, 'message' => 'Token Fonnte belum dikonfigurasi'];
+        }
+
+        // ── Buat pesan teks struk ────────────────────────────────────────
+        $message = $this->buildStrukMessage($pembayaran, $linkStruk);
+
+        // ── Kirim pesan teks ─────────────────────────────────────────────
+        try {
+            $response = Http::withHeaders(['Authorization' => $this->token])
+                ->timeout(15)
+                ->connectTimeout(5)
+                ->post(self::API_URL, [
+                    'target'      => $noHp,
+                    'message'     => $message,
+                    'countryCode' => '0',
+                ]);
+
+            $data = $response->json();
+
+            if ($response->successful() && ($data['status'] ?? false) === true) {
+                Log::info('WA Struk sent', ['phone' => $noHp, 'faktur' => $pembayaran->nomor_faktur]);
+
+                // ── Coba kirim juga file PDF struk (opsional) ─────────────
+                $this->trySendStrukFile($noHp, $linkStruk, $pembayaran);
+
+                return ['success' => true, 'message' => 'Struk pembayaran berhasil dikirim ke WhatsApp pelanggan'];
+            }
+
+            $reason = $data['reason'] ?? $data['detail'] ?? $response->body();
+            Log::warning('WA Struk failed', ['phone' => $noHp, 'reason' => $reason]);
+            return ['success' => false, 'message' => $reason ?: 'Gagal mengirim struk WA'];
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::warning('WA Struk connection error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Tidak bisa terhubung ke Fonnte: ' . $e->getMessage()];
+        } catch (\Exception $e) {
+            Log::error('WA Struk error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Coba kirim file PDF struk sebagai attachment WA.
+     * Ini opsional — jika gagal, pesan teks sudah terkirim, tidak perlu throw.
+     */
+    protected function trySendStrukFile(string $noHp, string $linkStruk, $pembayaran): void
+    {
+        try {
+            // Fonnte kirim file via URL dengan param 'url'
+            $response = Http::withHeaders(['Authorization' => $this->token])
+                ->timeout(20)
+                ->connectTimeout(5)
+                ->post(self::API_URL, [
+                    'target'      => $noHp,
+                    'message'     => '📎 Struk PDF: ' . $pembayaran->nomor_faktur,
+                    'url'         => $linkStruk,   // Fonnte akan capture halaman ini sebagai gambar/file
+                    'countryCode' => '0',
+                ]);
+
+            $data = $response->json();
+            if ($response->successful() && ($data['status'] ?? false) === true) {
+                Log::info('WA Struk file sent', ['phone' => $noHp]);
+            } else {
+                Log::info('WA Struk file skip (Fonnte tidak support URL atau gagal)', [
+                    'reason' => $data['reason'] ?? $response->body()
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::info('WA Struk file tidak terkirim (opsional): ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Build pesan WhatsApp struk pembayaran.
+     * Format plain text, tanpa emoji/simbol berlebihan — persis seperti struk laundry pada umumnya.
+     */
+    private function buildStrukMessage($pembayaran, string $linkStruk): string
+    {
+        $transaksi    = $pembayaran->transaksi;
+        $pelanggan    = $transaksi->pelanggan;
+        $tagihan      = $transaksi->total_tagihan;
+        $biayaAntar   = $transaksi->biaya_antar;
+        $namaCustomer = $pelanggan->nama_pelanggan ?? 'Pelanggan';
+        $isLunas      = $pembayaran->status_bayar === 'lunas';
+        $tglMasuk     = \Carbon\Carbon::parse($transaksi->tanggal_masuk)->format('d/m/Y - H:i');
+        $tglBayar     = $pembayaran->tanggal_bayar->format('d/m/Y - H:i');
+        $sep          = '====================';
+
+        // ── Header toko ──────────────────────────────────────────────────
+        $storeName    = config('app.store_name', 'Sofia Laundry');
+        $storeAddress = config('app.store_address', 'Jl. Contoh No. 123, Kota Padang');
+        $storePhone   = config('app.store_phone', '0812-3456-7890');
+
+        $msg  = "{$storeName}\n";
+        $msg .= "{$storeAddress}\n";
+        $msg .= "No. HP {$storePhone}\n";
+        $msg .= "{$sep}\n";
+
+        // ── Info nota ────────────────────────────────────────────────────
+        $msg .= "Tanggal : {$tglMasuk}\n";
+        $msg .= "No Nota : {$pembayaran->nomor_faktur}\n";
+        $msg .= "Kasir   : " . ($transaksi->user->nama_user ?? '-') . "\n";
+        $msg .= "Nama    : {$namaCustomer}\n";
+        $msg .= "===================\n";
+        $msg .= "\n";
+
+        // ── Detail layanan ───────────────────────────────────────────────
+        foreach ($transaksi->detailTransaksi as $d) {
+            $namaLayanan  = $d->layanan->nama_layanan ?? '-';
+            $hargaPerKg   = number_format($d->layanan->harga_per_kg ?? 0, 0, '.', '.');
+            $berat        = rtrim(number_format($d->berat, 2, '.', ''), '0');
+            $berat        = rtrim($berat, '.') ?: '0';
+            $subtotalItem = number_format($d->subtotal, 0, ',', '.');
+
+            $msg .= "Tipe Layanan  : {$namaLayanan}\n";
+
+            if ($transaksi->pewangi) {
+                $msg .= "Jenis Pewangi : " . $transaksi->pewangi->nama_barang . "\n";
+            }
+
+            $msg .= "Berat (kg)    = {$berat}\n";
+            $msg .= "Harga /kg     = Rp. {$hargaPerKg},-\n";
+            $msg .= "\n";
+            $msg .= "Subtotal      = Rp. {$subtotalItem},-\n";
+        }
+
+        if ($biayaAntar > 0) {
+            $tipeLabel  = ['none'=>'Sendiri','pickup'=>'Dijemput','delivery'=>'Diantar','both'=>'Jemput & Antar'];
+            $tipe       = $tipeLabel[$transaksi->tipe_antar] ?? '-';
+            $biayaFmt   = number_format($biayaAntar, 0, ',', '.');
+            $msg .= "Antar/Jemput  : {$tipe} = Rp. {$biayaFmt},-\n";
+        }
+
+        $bayarFmt = number_format($pembayaran->jumlah_bayar, 0, ',', '.');
+        $msg .= "Diskon        = Rp. 0,-\n";
+        $msg .= "Bayar         = Rp. {$bayarFmt},-\n";
+        $msg .= "\n";
+
+        // ── Perkiraan selesai ────────────────────────────────────────────
+        $msg .= "{$sep}\n";
+        $msg .= "Perkiraan Selesai : \n";
+        if ($transaksi->tanggal_selesai) {
+            $tglSelesai = \Carbon\Carbon::parse($transaksi->tanggal_selesai)->format('d/m/Y - H:i');
+            $msg .= "{$tglSelesai}\n";
+        } else {
+            $msg .= "-\n";
+        }
+        $msg .= "{$sep}\n";
+
+        // ── Status ───────────────────────────────────────────────────────
+        $statusText = $isLunas ? 'Lunas' : 'Belum lunas';
+        $lunasText  = $isLunas ? $tglBayar : '-';
+        $msg .= "Status    : {$statusText}\n";
+        $msg .= "Dilunasi  : {$lunasText}\n";
+        $msg .= "Diambil   : -\n";
+        $msg .= "{$sep}\n";
+
+        // ── Ketentuan ────────────────────────────────────────────────────
+        $msg .= "KETENTUAN :\n";
+        $msg .= "1. Pakaian luntur bukan menjadi tanggung jawab laundry.\n";
+        $msg .= "2. Komplain pakaian kami layani 1x24 jam, sejak pakaian diambil.\n";
+        $msg .= "3. Pengambilan laundry wajib menggunakan nota asli.\n";
+        $msg .= "4. Laundry yang tidak diambil dalam 1 bulan, jika terjadi kerusakan menjadi tanggung jawab pemilik.\n";
+        $msg .= "Terimakasih atas kunjungan anda\n";
+        $msg .= "\n";
+        $msg .= "\n";
+
+        // ── Link nota digital ────────────────────────────────────────────
+        $msg .= "{$sep}\n";
+        $msg .= "Klik link dibawah ini untuk melihat nota digital\n";
+        $msg .= $linkStruk;
+
+        return $msg;
+    }
+
+    /**
      * Kirim notifikasi pengembalian laundry ke pelanggan
      */
     public function sendPengembalianNotification($pengembalian): array
