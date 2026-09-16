@@ -265,9 +265,15 @@
             <div style="display:flex;justify-content:space-between;align-items:start;">
                 <div>
                     <div class="layanan-name">{{ $d->layanan->nama_layanan ?? '-' }}</div>
+                    @php $isSatuan = ($d->layanan?->tipe_harga === 'satuan'); @endphp
                     <div class="layanan-sub">
-                        {{ number_format($d->berat, 2, ',', '.') }} kg
-                        × Rp {{ number_format($d->layanan->harga_per_kg ?? 0, 0, ',', '.') }}/kg
+                        @if($isSatuan)
+                            {{ number_format($d->berat, 0) }} pcs
+                            × Rp {{ number_format($d->layanan->harga_per_kg ?? 0, 0, ',', '.') }}/pcs
+                        @else
+                            {{ number_format($d->berat, 2, ',', '.') }} kg
+                            × Rp {{ number_format($d->layanan->harga_per_kg ?? 0, 0, ',', '.') }}/kg
+                        @endif
                     </div>
                 </div>
                 <div class="layanan-price">

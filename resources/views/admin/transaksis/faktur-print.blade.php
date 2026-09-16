@@ -172,10 +172,13 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #1a202
         </thead>
         <tbody>
             @foreach($transaksi->detailTransaksi as $i => $d)
+            @php $isSatuan = ($d->layanan?->tipe_harga === 'satuan'); @endphp
             <tr>
                 <td class="text-center">{{ $i + 1 }}</td>
                 <td>{{ $d->layanan->nama_layanan ?? '-' }}</td>
-                <td class="text-center">{{ number_format($d->berat, 2) }}</td>
+                <td class="text-center">
+                    {{ $isSatuan ? number_format($d->berat, 0) . ' pcs' : number_format($d->berat, 2) . ' kg' }}
+                </td>
                 <td class="text-right">Rp {{ number_format($d->subtotal, 0, ',', '.') }}</td>
             </tr>
             @endforeach

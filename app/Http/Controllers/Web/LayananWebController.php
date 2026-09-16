@@ -23,11 +23,12 @@ class LayananWebController extends Controller
     {
         $request->validate([
             'nama_layanan' => 'required|string|max:100',
+            'tipe_harga'   => 'required|in:kg,satuan',
             'harga_per_kg' => 'required|numeric|min:0',
             'keterangan'   => 'nullable|string',
         ]);
 
-        Layanan::create($request->only(['nama_layanan', 'harga_per_kg', 'keterangan']));
+        Layanan::create($request->only(['nama_layanan', 'tipe_harga', 'harga_per_kg', 'keterangan']));
 
         return redirect()->route('admin.layanans.index')->with('success', 'Layanan berhasil ditambahkan.');
     }
@@ -44,11 +45,12 @@ class LayananWebController extends Controller
 
         $request->validate([
             'nama_layanan' => 'required|string|max:100',
+            'tipe_harga'   => 'required|in:kg,satuan',
             'harga_per_kg' => 'required|numeric|min:0',
             'keterangan'   => 'nullable|string',
         ]);
 
-        $layanan->update($request->only(['nama_layanan', 'harga_per_kg', 'keterangan']));
+        $layanan->update($request->only(['nama_layanan', 'tipe_harga', 'harga_per_kg', 'keterangan']));
 
         return redirect()->route('admin.layanans.index')->with('success', 'Layanan berhasil diperbarui.');
     }

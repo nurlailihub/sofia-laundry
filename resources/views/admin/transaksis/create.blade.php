@@ -150,14 +150,17 @@
                                     <select name="details[0][id_layanan]" class="form-control form-control-sm layanan-select" required>
                                         <option value="">— Pilih Layanan —</option>
                                         @foreach($layanans as $layanan)
-                                        <option value="{{ $layanan->id_layanan }}" data-harga="{{ $layanan->harga_per_kg }}">
-                                            {{ $layanan->nama_layanan }} (Rp {{ number_format($layanan->harga_per_kg, 0, ',', '.') }}/kg)
+                                        <option value="{{ $layanan->id_layanan }}"
+                                            data-harga="{{ $layanan->harga_per_kg }}"
+                                            data-tipe="{{ $layanan->tipe_harga }}">
+                                            {{ $layanan->nama_layanan }}
+                                            (Rp {{ number_format($layanan->harga_per_kg, 0, ',', '.') }}/{{ $layanan->tipe_harga === 'satuan' ? 'pcs' : 'kg' }})
                                         </option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="small font-weight-bold">Berat (Kg) <span class="text-danger">*</span></label>
+                                    <label class="small font-weight-bold berat-label">Berat (Kg) <span class="text-danger">*</span></label>
                                     <input type="number" name="details[0][berat]"
                                         class="form-control form-control-sm berat-input"
                                         step="0.01" min="0" placeholder="0.00" required>
@@ -334,12 +337,38 @@
 var detailIndex = 1;
 var layanansData = {
     @foreach($layanans as $layanan)
-    {{ $layanan->id_layanan }}: { harga: {{ $layanan->harga_per_kg }}, nama: "{{ addslashes($layanan->nama_layanan) }}" },
+    {{ $layanan->id_layanan }}: {
+        harga: {{ $layanan->harga_per_kg }},
+        nama: "{{ addslashes($layanan->nama_layanan) }}",
+        tipe: "{{ $layanan->tipe_harga }}"
+    },
     @endforeach
 };
 
 function fmt(n) {
     return 'Rp ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/**
+ * Update label kolom "Berat/Jumlah" sesuai tipe layanan yang dipilih.
+ * tipe = 'kg'     → label "Berat (Kg)", step 0.01, placeholder 0.00
+ * tipe = 'satuan' → label "Jumlah (pcs)", step 1, placeholder 1
+ */
+function updateRowTipe(row) {
+    var id   = row.find('.layanan-select').val();
+    var data = layanansData[id];
+    var beratInput  = row.find('.berat-input');
+    var beratLabel  = row.find('.berat-label');
+
+    if (data && data.tipe === 'satuan') {
+        beratLabel.text('Jumlah (pcs)');
+        beratInput.attr('step', '1').attr('placeholder', '1').attr('min', '1');
+        beratInput.attr('title', 'Masukkan jumlah item (pcs)');
+    } else {
+        beratLabel.text('Berat (Kg)');
+        beratInput.attr('step', '0.01').attr('placeholder', '0.00').attr('min', '0');
+        beratInput.attr('title', 'Masukkan berat dalam kilogram');
+    }
 }
 
 $(document).ready(function() {
@@ -368,23 +397,33 @@ $(document).ready(function() {
     if (oldRow.length) $('#selectedPelangganNama').val('[#' + oldRow.data('id') + '] ' + oldRow.data('nama'));
     @endif
 
+    // Tombol tambah layanan
     $('#addDetail').on('click', function() {
         var opts = '<option value="">— Pilih Layanan —</option>';
         $.each(layanansData, function(id, d) {
-            opts += '<option value="' + id + '" data-harga="' + d.harga + '">' + d.nama
-                  + ' (Rp ' + d.harga.toLocaleString('id-ID') + '/kg)</option>';
+            var satuan = d.tipe === 'satuan' ? 'pcs' : 'kg';
+            opts += '<option value="' + id + '" data-harga="' + d.harga + '" data-tipe="' + d.tipe + '">'
+                  + d.nama + ' (Rp ' + d.harga.toLocaleString('id-ID') + '/' + satuan + ')</option>';
         });
 
         var html = '<div class="detail-item">'
             + '<div class="row align-items-end">'
-            + '<div class="col-md-5"><label class="small font-weight-bold">Layanan <span class="text-danger">*</span></label>'
-            + '<select name="details[' + detailIndex + '][id_layanan]" class="form-control form-control-sm layanan-select" required>' + opts + '</select></div>'
-            + '<div class="col-md-3"><label class="small font-weight-bold">Berat (Kg) <span class="text-danger">*</span></label>'
-            + '<input type="number" name="details[' + detailIndex + '][berat]" class="form-control form-control-sm berat-input" step="0.01" min="0" placeholder="0.00" required></div>'
-            + '<div class="col-md-3"><label class="small font-weight-bold">Subtotal</label>'
-            + '<div class="input-group input-group-sm"><div class="input-group-prepend"><span class="input-group-text">Rp</span></div>'
-            + '<input type="number" name="details[' + detailIndex + '][subtotal]" class="form-control subtotal-input bg-white" readonly></div></div>'
-            + '<div class="col-md-1 text-center"><button type="button" class="btn btn-outline-danger btn-sm remove-detail"><i class="fas fa-times"></i></button></div>'
+            + '<div class="col-md-5">'
+            +   '<label class="small font-weight-bold">Layanan <span class="text-danger">*</span></label>'
+            +   '<select name="details[' + detailIndex + '][id_layanan]" class="form-control form-control-sm layanan-select" required>' + opts + '</select>'
+            + '</div>'
+            + '<div class="col-md-3">'
+            +   '<label class="small font-weight-bold berat-label">Berat (Kg) <span class="text-danger">*</span></label>'
+            +   '<input type="number" name="details[' + detailIndex + '][berat]" class="form-control form-control-sm berat-input" step="0.01" min="0" placeholder="0.00" required>'
+            + '</div>'
+            + '<div class="col-md-3">'
+            +   '<label class="small font-weight-bold">Subtotal</label>'
+            +   '<div class="input-group input-group-sm"><div class="input-group-prepend"><span class="input-group-text">Rp</span></div>'
+            +   '<input type="number" name="details[' + detailIndex + '][subtotal]" class="form-control subtotal-input bg-white" readonly></div>'
+            + '</div>'
+            + '<div class="col-md-1 text-center">'
+            +   '<button type="button" class="btn btn-outline-danger btn-sm remove-detail"><i class="fas fa-times"></i></button>'
+            + '</div>'
             + '</div></div>';
 
         $('#detailContainer').append(html);
@@ -403,11 +442,32 @@ $(document).ready(function() {
         items.find('.remove-detail').toggle(items.length > 1);
     }
 
-    $(document).on('change input', '.layanan-select, .berat-input', function() {
+    // Saat layanan dipilih — update label berat/jumlah dan hitung subtotal
+    $(document).on('change', '.layanan-select', function() {
+        var row  = $(this).closest('.detail-item');
+        var id   = $(this).val();
+        var data = layanansData[id];
+
+        updateRowTipe(row);
+
+        // Hitung subtotal jika sudah ada input berat/jumlah
+        var qty = parseFloat(row.find('.berat-input').val()) || 0;
+        if (data && qty > 0) {
+            row.find('.subtotal-input').val((data.harga * qty).toFixed(0));
+        } else {
+            row.find('.subtotal-input').val('');
+        }
+        calculateTotal();
+    });
+
+    // Saat berat/jumlah diubah
+    $(document).on('input', '.berat-input', function() {
         var row   = $(this).closest('.detail-item');
-        var harga = parseFloat(row.find('.layanan-select option:selected').data('harga')) || 0;
-        var berat = parseFloat(row.find('.berat-input').val()) || 0;
-        row.find('.subtotal-input').val((harga * berat).toFixed(0));
+        var id    = row.find('.layanan-select').val();
+        var data  = layanansData[id];
+        var harga = data ? data.harga : 0;
+        var qty   = parseFloat($(this).val()) || 0;
+        row.find('.subtotal-input').val((harga * qty).toFixed(0));
         calculateTotal();
     });
 
@@ -438,8 +498,17 @@ $(document).ready(function() {
 
     function calculateTotal() {
         var berat = 0, subtotal = 0;
-        $('.berat-input').each(function()    { berat    += parseFloat($(this).val()) || 0; });
-        $('.subtotal-input').each(function() { subtotal += parseFloat($(this).val()) || 0; });
+        // Total berat hanya dari layanan tipe kg
+        $('.detail-item').each(function() {
+            var id   = $(this).find('.layanan-select').val();
+            var data = layanansData[id];
+            var qty  = parseFloat($(this).find('.berat-input').val()) || 0;
+            var sub  = parseFloat($(this).find('.subtotal-input').val()) || 0;
+            if (data && data.tipe === 'kg') {
+                berat += qty;
+            }
+            subtotal += sub;
+        });
 
         var biaya = ($('#tipeAntarJemput').val() !== 'none')
             ? (parseFloat($('#biayaAntarJemput').val()) || 0) : 0;
@@ -456,6 +525,9 @@ $(document).ready(function() {
 
     toggleRemoveBtn();
     calculateTotal();
+
+    // Inisialisasi baris pertama
+    updateRowTipe($('.detail-item').first());
 });
 </script>
 @endpush

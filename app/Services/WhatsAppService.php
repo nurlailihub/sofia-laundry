@@ -242,8 +242,11 @@ class WhatsAppService
         foreach ($transaksi->detailTransaksi as $d) {
             $namaLayanan  = $d->layanan->nama_layanan ?? '-';
             $hargaPerKg   = number_format($d->layanan->harga_per_kg ?? 0, 0, '.', '.');
-            $berat        = rtrim(number_format($d->berat, 2, '.', ''), '0');
-            $berat        = rtrim($berat, '.') ?: '0';
+            $isSatuan     = ($d->layanan?->tipe_harga === 'satuan');
+            $satuanLabel  = $isSatuan ? 'pcs' : 'kg';
+            $berat        = $isSatuan
+                            ? number_format($d->berat, 0, '.', '')
+                            : rtrim(rtrim(number_format($d->berat, 2, '.', ''), '0'), '.');
             $subtotalItem = number_format($d->subtotal, 0, ',', '.');
 
             $msg .= "Tipe Layanan  : {$namaLayanan}\n";
@@ -252,8 +255,8 @@ class WhatsAppService
                 $msg .= "Jenis Pewangi : " . $transaksi->pewangi->nama_barang . "\n";
             }
 
-            $msg .= "Berat (kg)    = {$berat}\n";
-            $msg .= "Harga /kg     = Rp. {$hargaPerKg},-\n";
+            $msg .= "Jumlah        = {$berat} {$satuanLabel}\n";
+            $msg .= "Harga /{$satuanLabel}     = Rp. {$hargaPerKg},-\n";
             $msg .= "\n";
             $msg .= "Subtotal      = Rp. {$subtotalItem},-\n";
         }

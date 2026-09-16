@@ -27,7 +27,8 @@
                         <tr>
                             <th width="5%">No</th>
                             <th>Nama Layanan</th>
-                            <th>Harga per Kg</th>
+                            <th>Tipe</th>
+                            <th>Harga</th>
                             <th>Keterangan</th>
                             <th width="12%">Aksi</th>
                         </tr>
@@ -37,7 +38,17 @@
                         <tr>
                             <td>{{ $layanans->firstItem() + $index }}</td>
                             <td>{{ $layanan->nama_layanan }}</td>
-                            <td>Rp {{ number_format($layanan->harga_per_kg, 0, ',', '.') }}</td>
+                            <td>
+                                @if($layanan->tipe_harga === 'satuan')
+                                    <span class="badge badge-success">Per Pcs</span>
+                                @else
+                                    <span class="badge badge-primary">Per Kg</span>
+                                @endif
+                            </td>
+                            <td>
+                                Rp {{ number_format($layanan->harga_per_kg, 0, ',', '.') }}
+                                / {{ $layanan->tipe_harga === 'satuan' ? 'pcs' : 'kg' }}
+                            </td>
                             <td>{{ $layanan->keterangan ?? '-' }}</td>
                             <td>
                                 <a href="{{ route('admin.layanans.edit', $layanan->id_layanan) }}" class="btn btn-info btn-sm">
